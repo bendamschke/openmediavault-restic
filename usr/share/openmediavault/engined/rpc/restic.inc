@@ -29,6 +29,7 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
     public function initialize()
     {
         $this->registerMethod("getSettings");
+        $this->registerMethod("setSettings");
         $this->registerMethod("updateRestic");
     }
 
@@ -53,8 +54,36 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
         // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
 		$object->setFlatAssoc([
-            "enable" => True,
+            "enable" => $object->get("enable"),
 			"version" => $output[0],
+		]);
+
+		// Write the configuration object to the database "config.xml"
+		$db->set($object);
+
+		// Return the configuration object for the "Webgui"
+		return $object->getAssoc();
+    }
+
+
+    public function setSettings($params, $context)
+    {
+        // Validate the RPC caller context
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.restic.setsettings');
+
+        // Get the configuration object from the database "config.xml" 
+        $db = \OMV\Config\Database::getInstance();
+        $object = $db->get("conf.service.restic.settings");
+
+        // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
+        // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
+		$object->setFlatAssoc([
+            "enable" => $params['enable'],
+			"version" => $params['version'],
 		]);
 
 		// Write the configuration object to the database "config.xml"

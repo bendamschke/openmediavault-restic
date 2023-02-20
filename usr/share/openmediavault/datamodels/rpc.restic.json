@@ -1,0 +1,19 @@
+[
+    {
+    "type": "rpc",
+    "id": "rpc.restic.setsettings",
+    "params": {
+        "type": "object",
+        "properties": {
+            "enable": {
+                "type": "boolean",
+                "required": true
+            },
+            "version": {
+                "type": "string",
+                "required": true
+            }
+            }
+        }
+    }
+]

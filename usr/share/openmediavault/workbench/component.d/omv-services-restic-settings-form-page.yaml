@@ -8,7 +8,14 @@ data:
       service: Restic
       get:
         method: getSettings
+      post:
+        method: setSettings
     fields:
+      - type: checkbox
+        name: enable
+        label: _("Enable")
+        value: true
+        hint: _("Whether Restic should operate.")
       - type: textInput
         name: version
         label: _("Version")
@@ -28,3 +35,4 @@ data:
         execute:
           type: url
           url: /services/restic
+      - template: submit
