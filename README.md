@@ -1,5 +1,4 @@
-openmediavault-restic
-=======================
+# openmediavault-restic
 
 Restic plugin for OpenMediaVault
 

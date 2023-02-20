@@ -22,9 +22,9 @@ require_once("openmediavault/globals.inc");
 \OMV\System\LogFileSpec::registerSpecification("restic", [
     "filename" => "restic.log",
     "filepath" => \OMV\Environment::get("OMV_RESTIC_LOG_DIR", "/var/log/restic") .
-        "/restic.log",
-    "regex"    => "/^(.*?):\d+:\s+(.*?):\s+(.*)$/",
-    "columns"  => [
+    "/restic.log",
+    "regex" => "/^(.*?):\d+:\s+(.*?):\s+(.*)$/",
+    "columns" => [
         "component" => 1,
         "level" => 2,
         "event" => 3

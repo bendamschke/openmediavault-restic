@@ -18,8 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class OMVModuleRestic extends \OMV\Engine\Module\ServiceAbstract
-    implements \OMV\Engine\Notify\IListener
+class OMVModuleRestic extends \OMV\Engine\Module\ServiceAbstract implements \OMV\Engine\Notify\IListener
 {
     public function getName()
     {
@@ -31,7 +30,7 @@ class OMVModuleRestic extends \OMV\Engine\Module\ServiceAbstract
         $dispatcher->addListener(
             OMV_NOTIFY_MODIFY,
             "org.openmediavault.conf.service.restic",
-            [ $this, "setDirty" ]
+            [$this, "setDirty"]
         );
     }
 }

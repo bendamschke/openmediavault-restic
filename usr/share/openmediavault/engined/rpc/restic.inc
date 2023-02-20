@@ -42,23 +42,23 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Validate the RPC caller context
         // i.e. you must be an logged on as an administrator to perform this function
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
-        
+
         // Get the configuration object from the database "config.xml" 
         $db = \OMV\Config\Database::getInstance();
         $object = $db->get("conf.service.restic.settings");
-        
+
         // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
         // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
-		$object->setFlatAssoc([
+        $object->setFlatAssoc([
             "enable" => $object->get("enable"),
-			"version" => $this->getResticVersion($params, $context),
-		]);
+            "version" => $this->getResticVersion($params, $context),
+        ]);
 
-		// Write the configuration object to the database "config.xml"
-		$db->set($object);
+        // Write the configuration object to the database "config.xml"
+        $db->set($object);
 
-		// Return the configuration object for the "Webgui"
-		return $object->getAssoc();
+        // Return the configuration object for the "Webgui"
+        return $object->getAssoc();
     }
 
 
@@ -77,16 +77,16 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
         // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
-		$object->setFlatAssoc([
+        $object->setFlatAssoc([
             "enable" => $params['enable'],
-			"version" => $params['version'],
-		]);
+            "version" => $params['version'],
+        ]);
 
-		// Write the configuration object to the database "config.xml"
-		$db->set($object);
+        // Write the configuration object to the database "config.xml"
+        $db->set($object);
 
-		// Return the configuration object for the "Webgui"
-		return $object->getAssoc();
+        // Return the configuration object for the "Webgui"
+        return $object->getAssoc();
     }
 
     public function updateRestic($params, $context)

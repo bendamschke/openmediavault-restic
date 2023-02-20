@@ -22,6 +22,10 @@
 Session.vim
 .netrwhist
 
+# VS Code
+
+.vscode/
+
 # SVN
 .svn/
 

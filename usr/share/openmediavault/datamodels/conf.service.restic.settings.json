@@ -8,11 +8,11 @@
     },
     "properties": {
         "enable": {
-        "type": "boolean",
-        "default": true
+            "type": "boolean",
+            "default": true
         },
         "version": {
-        "type": "string"
+            "type": "string"
         }
     }
 }
