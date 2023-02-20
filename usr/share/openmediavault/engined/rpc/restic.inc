@@ -28,9 +28,13 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
     public function initialize()
     {
+        // Restic main settings
         $this->registerMethod("getSettings");
         $this->registerMethod("setSettings");
+
+        // Restic versioning
         $this->registerMethod("updateRestic");
+        $this->registerMethod("getResticVersion");
     }
 
     public function getSettings($params, $context)
@@ -43,19 +47,11 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $db = \OMV\Config\Database::getInstance();
         $object = $db->get("conf.service.restic.settings");
         
-        // Make a call to the Restic application, with the `version` argument
-        $cmdArgs = [];
-        $cmdArgs[] = $this->getProgram;
-        $cmdArgs[] = "version | awk '{print $2}'";
-        $cmd = new \OMV\System\Process($cmdArgs);
-        $cmd->setRedirect2to1();
-        $cmd->execute($output);
-
         // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
         // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
 		$object->setFlatAssoc([
             "enable" => $object->get("enable"),
-			"version" => $output[0],
+			"version" => $this->getResticVersion($params, $context),
 		]);
 
 		// Write the configuration object to the database "config.xml"
@@ -109,5 +105,18 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         // Let the caller know if the command was successful (for the "successUrl" event)
         return (0 == $exitStatus) ? TRUE : FALSE;
+    }
+
+    public function getResticVersion($params, $context)
+    {
+        // Make a call to the Restic application, with the `version` argument
+        $cmdArgs = [];
+        $cmdArgs[] = $this->getProgram;
+        $cmdArgs[] = "version | awk '{print $2}'";
+        $cmd = new \OMV\System\Process($cmdArgs);
+        $cmd->setRedirect2to1();
+        $cmd->execute($output);
+
+        return $output[0];
     }
 }
