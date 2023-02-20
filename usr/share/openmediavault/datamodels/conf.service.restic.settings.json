@@ -1,0 +1,18 @@
+{
+    "type": "config",
+    "id": "conf.service.restic.settings",
+    "title": "Restic settings",
+    "queryinfo": {
+        "xpath": "//services/restic/settings",
+        "iterable": false
+    },
+    "properties": {
+        "enable": {
+        "type": "boolean",
+        "default": true
+        },
+        "version": {
+        "type": "string"
+        }
+    }
+}

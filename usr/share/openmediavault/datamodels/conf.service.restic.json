@@ -1,0 +1,23 @@
+{
+  "type": "config",
+  "id": "conf.service.restic",
+  "title": "Restic",
+  "queryinfo": {
+    "xpath": "//services/restic",
+    "iterable": false
+  },
+  "properties": {
+    "settings": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "default": true
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

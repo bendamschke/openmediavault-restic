@@ -1,0 +1,17 @@
+Source: openmediavault-restic
+Section: net
+XB-Plugin-Section: backup
+Priority: optional
+Maintainer: OpenMediaVault Plugin Developers <plugins@omv-extras.org>
+Build-Depends: debhelper (>= 12)
+Standards-Version: 4.3.0
+
+Package: openmediavault-restic
+Architecture: all
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         restic
+Description: restic plugin for OpenMediaVault.
+ Restic is a deduplicating backup program.
+ Optionally, it supports compression and authenticated
+ encryption.

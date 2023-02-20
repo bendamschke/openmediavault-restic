@@ -1,0 +1,21 @@
+version: "1.0"
+type: component
+data:
+  name: omv-services-restic-settings-form-page
+  type: formPage
+  config:
+    request:
+      service: Restic
+      get:
+        method: getSettings
+    fields:
+      - type: textInput
+        name: version
+        label: _("Version")
+        value: ""
+        hint: _("The current version number of Restic.")
+    buttons:
+      - template: cancel
+        execute:
+          type: url
+          url: "/services"
