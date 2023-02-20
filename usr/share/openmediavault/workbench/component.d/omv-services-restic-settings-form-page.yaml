@@ -18,4 +18,4 @@ data:
       - template: cancel
         execute:
           type: url
-          url: "/services"
+          url: /services/restic
