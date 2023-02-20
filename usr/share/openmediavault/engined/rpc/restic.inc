@@ -42,17 +42,18 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $object = $db->get("conf.service.restic.settings");
         
         // Make a call to the Restic application, with the `version` argument
-        // $cmdArgs = [];
-        // $cmdArgs[] = $this->getProgram();
-        // $cmdArgs[] = "version"
-        // $cmd = new \OMV\System\Process($cmdArgs); // -- TODO: This causes an error when running `sudo /usr/sbin/omv-engined -f` after install
-        // $result = $cmd->execute($output, $exitStatus);
+        $cmdArgs = [];
+        $cmdArgs[] = $this->getProgram;
+        $cmdArgs[] = "version | awk '{print $2}'";
+        $cmd = new \OMV\System\Process($cmdArgs);
+        $cmd->setRedirect2to1();
+        $cmd->execute($output);
 
         // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
         // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
 		$object->setFlatAssoc([
             "enable" => True,
-			"version" => "This is a test",
+			"version" => $output[0],
 		]);
 
 		// Write the configuration object to the database "config.xml"
