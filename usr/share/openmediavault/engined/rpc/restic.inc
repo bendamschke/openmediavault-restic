@@ -29,6 +29,7 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
     public function initialize()
     {
         $this->registerMethod("getSettings");
+        $this->registerMethod("updateRestic");
     }
 
     public function getSettings($params, $context)
@@ -61,5 +62,23 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
 		// Return the configuration object for the "Webgui"
 		return $object->getAssoc();
+    }
+
+    public function updateRestic($params, $context)
+    {
+        // Validate the RPC caller context
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
+
+        // Make a call to the Restic application to self-update
+        $cmdArgs = [];
+        $cmdArgs[] = $this->getProgram;
+        $cmdArgs[] = "self-update";
+        $cmd = new \OMV\System\Process($cmdArgs);
+        $cmd->setRedirect2to1();
+        $cmd->execute($output, $exitStatus);
+
+        // Let the caller know if the command was successful (for the "successUrl" event)
+        return (0 == $exitStatus) ? TRUE : FALSE;
     }
 }

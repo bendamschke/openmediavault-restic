@@ -15,6 +15,15 @@ data:
         value: ""
         hint: _("The current version number of Restic.")
     buttons:
+      - text: _("Update Restic")
+        icon: mdi:update
+        execute:
+          type: request
+          request:
+            service: Restic
+            method: updateRestic
+            progressMessage: _("Checking for Restic updates.")
+            successUrl: /services/restic
       - template: cancel
         execute:
           type: url
