@@ -15,5 +15,52 @@
                 }
             }
         }
+    },
+    {
+        "type": "rpc",
+        "id": "rpc.restic.setrepo",
+        "params": {
+            "type": "object",
+            "properties": {
+                "uuid": {
+                    "type": "string",
+                    "format": "uuidv4",
+                    "required": true
+                },
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                      "local"
+                    ],
+                    "required": true
+                  },
+                "sharedfolderref": {
+                    "type": "string",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "format": "uuidv4"
+                        },
+                        {
+                            "type": "string",
+                            "maxLength": 0
+                        }
+                    ],
+                    "required": true
+                },
+                "passphrase": {
+                    "type": "string",
+                    "required": true
+                },
+                "skipinit": {
+                    "type": "boolean",
+                    "required": true
+                }
+            }
+        }
     }
 ]

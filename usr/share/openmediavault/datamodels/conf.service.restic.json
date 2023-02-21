@@ -18,6 +18,47 @@
           "type": "string"
         }
       }
+    },
+    "repos": {
+      "type": "object",
+      "properties": {
+        "repo": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuidv4"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "local"
+                ],
+                "default": "local"
+              },
+              "sharedfolderref": {
+                "type": "string",
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "format": "uuidv4"
+                  },
+                  {
+                    "type": "string",
+                    "maxLength": 0
+                  }
+                ],
+                "default": ""
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

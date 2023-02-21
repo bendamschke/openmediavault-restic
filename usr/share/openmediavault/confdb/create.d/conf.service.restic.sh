@@ -43,10 +43,16 @@ if ! omv_config_exists "${SERVICE_XPATH}"; then
     omv_config_add_node "/config/services" "${SERVICE_XPATH_NAME}"
 fi
 
+# Configure the settings config
 if ! omv_config_exists "${SERVICE_XPATH}/settings"; then
     omv_config_add_node "${SERVICE_XPATH}" "settings"
     omv_config_add_key "${SERVICE_XPATH}/settings" "enable" "0"
     omv_config_add_key "${SERVICE_XPATH}/settings" "version" "N/A"
+fi
+
+# Configure the repos config
+if ! omv_config_exists "${SERVICE_XPATH}/repos"; then
+    omv_config_add_node "${SERVICE_XPATH}" "repos" ""
 fi
 
 exit 0

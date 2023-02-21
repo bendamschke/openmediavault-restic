@@ -2,7 +2,8 @@
 
 Restic plugin for OpenMediaVault
 
-![Screenshot_20230221_074543](https://user-images.githubusercontent.com/31949120/220196062-d63be1b0-b81f-4221-ba4e-98c6162f75f1.png)
+![Screenshot_20230222_101316](https://user-images.githubusercontent.com/31949120/220480063-ef39708b-98da-4da0-9e52-22bccb806a3c.png)
+![Screenshot_20230222_101335](https://user-images.githubusercontent.com/31949120/220480075-7846fe1a-135b-418d-a707-914d9b1c18a7.png)
 
 ## Development process
 

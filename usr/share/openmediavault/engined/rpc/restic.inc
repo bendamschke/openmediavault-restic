@@ -35,6 +35,12 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Restic versioning
         $this->registerMethod("updateRestic");
         $this->registerMethod("getResticVersion");
+
+        // Restic repositories
+        $this->registerMethod("getRepoList");
+        $this->registerMethod("getRepo");
+        $this->registerMethod("setRepo");
+        $this->registerMethod("deleteRepo");
     }
 
     public function getSettings($params, $context)
@@ -67,7 +73,6 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Validate the RPC caller context
         // i.e. you must be an logged on as an administrator to perform this function
         $this->validateMethodContext($context, ["role" => OMV_ROLE_ADMINISTRATOR]);
-
         // Validate the parameters of the RPC service method.
         $this->validateMethodParams($params, 'rpc.restic.setsettings');
 
@@ -118,5 +123,128 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $cmd->execute($output);
 
         return $output[0];
+    }
+
+
+    public function getRepoList($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.getlist');
+
+        // Get the configuration objects from the database "config.xml" 
+        $db = \OMV\Config\Database::getInstance();
+        $repos = $db->get('conf.service.restic.repo');
+        // $snapshots = $db->get('conf.service.restic.snapshot');
+
+        // Add additional share information
+        $objectsAssoc = [];
+        foreach ($repos as $repok => &$repov) {
+            // Add the new property 'sharedfoldername'.
+            $repov->add('sharedfoldername', 'string', gettext("n/a"));
+            // Get the shared folder configuration object.
+            $sfObject = $db->get(
+                'conf.system.sharedfolder',
+                $repov->get('sharedfolderref')
+            );
+            // Update the 'sharedfoldername' property.
+            $repov->set('sharedfoldername', $sfObject->get('name'));
+
+            // Get how many snapshots have been created for this repository
+            $snapshotCount = 0;
+            // foreach ($snapshots as $snapshotk => $snapshotv) {
+            //     if ($snapshotv->get('reporef') == $repov->get('uuid')) {
+            //         $snapshotCount++;
+            //     }
+            // }
+            $repov->add('snapshotCount', 'integer', $snapshotCount);
+
+            $objectsAssoc[] = $repov->getAssoc();
+        }
+        // Filter the result.
+        return $this->applyFilter(
+            $objectsAssoc, $params['start'], $params['limit'],
+            $params['sortfield'], $params['sortdir']
+        );
+    }
+
+
+    public function getRepo($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.objectuuid');
+
+        // Get the configuration object.
+        $db = \OMV\Config\Database::getInstance();
+        return $db->getAssoc('conf.service.restic.repo', $params['uuid']);
+    }
+
+    public function setRepo($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.restic.setrepo');
+
+        // Get the repository via its UUID as per the validation method params RPC datamodel
+        $repo = new \OMV\Config\ConfigObject('conf.service.restic.repo');
+
+        // Remove spaces from name
+        $params['name'] = str_replace(' ', '_', $params['name']);
+        $repo->setAssoc($params);
+
+        // Check if this is a new repository
+        $isNew = $repo->isNew();
+        $db = \OMV\Config\Database::getInstance();
+
+        if (TRUE === $isNew) {
+            // Ensure that the name and shared folder references are unique
+            // TODO: This might be where we get a non-user-friendly exception raised in the UI
+            $db->assertIsUnique($repo, 'name');
+            $db->assertIsUnique($repo, 'sharedfolderref');
+        }
+
+        // Initalise the repository, unless we opted to skip initalisation
+        // if ($params['skipinit'] == true) { }
+        $path = \OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
+            'uuid' => $params['sharedfolderref']
+        ], $context);
+
+        $cmdArgs = [];
+        $cmdArgs[] = $this->getProgram;
+        $cmdArgs[] = 'init --repo';
+        $cmdArgs[] = escapeshellarg($path);
+
+        // Attempt to initialise the repository
+        $cmd = new \OMV\System\Process($cmdArgs);
+        $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($params['passphrase']));
+        $cmd->setRedirect2to1();
+        $cmdLine = $cmd->getCommandLine();
+        $cmd->execute($output, $exitStatus);
+
+        // If we cannot, we should raise an exception
+        if (0 !== $exitStatus) {
+            throw new \OMV\ExecException($cmdLine, $output);
+        }
+
+        // Remove skipinit and passphrase parameters
+        $repo->remove('skipinit');
+        // TODO: We may need to store this actually, as we could have multiple repos
+        $repo->remove('passphrase');
+        // Set the configuration object.
+        $db->set($repo);
+        // Return the configuration object.
+        return $repo->getAssoc();
+    }
+
+    public function deleteRepo($params, $context)
+    {
+        return null;
     }
 }

@@ -27,10 +27,11 @@ class OMVModuleRestic extends \OMV\Engine\Module\ServiceAbstract implements \OMV
 
     public function bindListeners(\OMV\Engine\Notify\Dispatcher $dispatcher)
     {
+        // These will let OpenMediaVault know when we should prompt the user to apply the changes
         $dispatcher->addListener(
-            OMV_NOTIFY_MODIFY,
-            "org.openmediavault.conf.service.restic",
-            [$this, "setDirty"]
+            OMV_NOTIFY_CREATE | OMV_NOTIFY_MODIFY | OMV_NOTIFY_DELETE,
+            "org.openmediavault.conf.service.restic.repo",
+            [ $this, "setDirty" ]
         );
     }
 }
