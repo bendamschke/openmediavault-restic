@@ -13,9 +13,6 @@
         "enable": {
           "type": "boolean",
           "default": true
-        },
-        "version": {
-          "type": "string"
         }
       }
     },

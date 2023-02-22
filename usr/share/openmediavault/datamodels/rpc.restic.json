@@ -8,10 +8,6 @@
                 "enable": {
                     "type": "boolean",
                     "required": true
-                },
-                "version": {
-                    "type": "string",
-                    "required": true
                 }
             }
         }

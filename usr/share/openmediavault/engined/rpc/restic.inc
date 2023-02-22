@@ -53,15 +53,9 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $db = \OMV\Config\Database::getInstance();
         $object = $db->get("conf.service.restic.settings");
 
-        // Write to the configuration object, ensuring that the keys match that of the properties within conf.service.restic.json
-        // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
-        $object->setFlatAssoc([
-            "enable" => $object->get("enable"),
-            "version" => $this->getResticVersion($params, $context),
-        ]);
-
-        // Write the configuration object to the database "config.xml"
-        $db->set($object);
+        // Get the current Restic version, and do not write it to the databsse "config.xml"
+        $version = $this->getResticVersion($params, $context);
+        $object->add('version', 'string', $version);
 
         // Return the configuration object for the "Webgui"
         return $object->getAssoc();
@@ -84,7 +78,6 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // usr/share/openmediavault/workbench/component.d/omv-services-restic-settings-form-page.yaml calls `getSettings`
         $object->setFlatAssoc([
             "enable" => $params['enable'],
-            "version" => $params['version'],
         ]);
 
         // Write the configuration object to the database "config.xml"

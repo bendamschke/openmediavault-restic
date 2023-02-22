@@ -21,6 +21,9 @@ data:
         label: _("Version")
         value: ""
         hint: _("The current version number of Restic.")
+        submitValue: false
+        modifiers:
+          - type: readonly
     buttons:
       - text: _("Update Restic")
         icon: mdi:update

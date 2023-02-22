@@ -30,6 +30,11 @@ class OMVModuleRestic extends \OMV\Engine\Module\ServiceAbstract implements \OMV
         // These will let OpenMediaVault know when we should prompt the user to apply the changes
         $dispatcher->addListener(
             OMV_NOTIFY_CREATE | OMV_NOTIFY_MODIFY | OMV_NOTIFY_DELETE,
+            "org.openmediavault.conf.service.restic.settings",
+            [ $this, "setDirty" ]
+        );
+        $dispatcher->addListener(
+            OMV_NOTIFY_CREATE | OMV_NOTIFY_MODIFY | OMV_NOTIFY_DELETE,
             "org.openmediavault.conf.service.restic.repo",
             [ $this, "setDirty" ]
         );

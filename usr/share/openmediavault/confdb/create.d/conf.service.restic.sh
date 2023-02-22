@@ -34,7 +34,6 @@ SERVICE_XPATH="/config/services/${SERVICE_XPATH_NAME}"
 #         <restic>
 #             <settings>
 #                 <enable>0</enable>
-#                 <version>"N/A"</version>
 #             </settings>
 #             <repos>
 #             </repos>
@@ -49,7 +48,6 @@ fi
 if ! omv_config_exists "${SERVICE_XPATH}/settings"; then
     omv_config_add_node "${SERVICE_XPATH}" "settings"
     omv_config_add_key "${SERVICE_XPATH}/settings" "enable" "0"
-    omv_config_add_key "${SERVICE_XPATH}/settings" "version" "N/A"
 fi
 
 # Configure the repos config
