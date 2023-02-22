@@ -245,6 +245,53 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
     public function deleteRepo($params, $context)
     {
-        return null;
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.objectuuid');
+
+        // Get the configuration object.
+        $db = \OMV\Config\Database::getInstance();
+
+        // Ensure that this repository does not have any snapshots, before deleting it
+        // TODO: In UI, when clicking the delete button, have a pop-up with a checkbox to delete all snapshots
+        // $snapshots = $db->get('conf.service.restic.snapshot');
+        // $found = false;
+        // foreach ($snapshots as $snapshot) {
+        //     $reporef = $snapshot->get('reporef');
+        //     if ($reporef == $params['uuid']) {
+        //         $found = true;
+        //         break;
+        //     }
+        // }
+        // if ($found) {
+        //     throw new \OMV\ExecException(gettext(
+        //       "Repository is in use. Please delete the snapshots associated with this repository first."
+        //     ));
+        // }
+
+        $repo = $db->get('conf.service.restic.repo', $params['uuid']);
+
+        // Delete repository
+        $path = \OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
+            'uuid' => $repo->get('sharedfolderref')
+        ], $context);
+        $resticRepoFileOrFolder = array("config", "data", "index", "keys", "locks", "snapshots");
+
+        $cmdArgs = [];
+        $cmdArgs[] = "rm -rf";
+        foreach ($resticRepoFileOrFolder as $fileOrFolder){
+            $cmdArgs[] = escapeshellarg($path . "/" . $fileOrFolder);
+        };
+        
+        $cmd = new \OMV\System\Process($cmdArgs);        
+        $cmd->setQuiet(TRUE);
+        $cmd->execute($output);
+        
+        // Delete the configuration object.
+        $db->delete($repo);
+        // Return the deleted configuration object.
+        return $repo->getAssoc();
     }
 }

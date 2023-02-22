@@ -36,7 +36,9 @@ SERVICE_XPATH="/config/services/${SERVICE_XPATH_NAME}"
 #                 <enable>0</enable>
 #                 <version>"N/A"</version>
 #             </settings>
-#         </restic
+#             <repos>
+#             </repos>
+#         </restic>
 #     </services>
 # </config>
 if ! omv_config_exists "${SERVICE_XPATH}"; then
