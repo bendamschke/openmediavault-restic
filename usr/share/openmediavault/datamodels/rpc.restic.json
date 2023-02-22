@@ -58,5 +58,47 @@
                 }
             }
         }
+    },
+    {
+        "type": "rpc",
+        "id": "rpc.restic.setenvvar",
+        "params": {
+            "type": "object",
+            "properties": {
+                "uuid": {
+                    "type": "string",
+                    "format": "uuidv4",
+                    "required": true
+                },
+                "envname": {
+                    "type": "string",
+                    "required": true
+                },
+                "envvalue": {
+                    "type": "string",
+                    "required": true
+                },
+                "reporef": {
+                    "type": "string",
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "format": "uuidv4"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "shared"
+                            ]
+                        },
+                        {
+                            "type": "string",
+                            "maxLength": 0
+                        }
+                    ],
+                    "required": true
+                }
+            }
+        }
     }
 ]

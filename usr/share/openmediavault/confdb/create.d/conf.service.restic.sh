@@ -37,6 +37,8 @@ SERVICE_XPATH="/config/services/${SERVICE_XPATH_NAME}"
 #             </settings>
 #             <repos>
 #             </repos>
+#             <envvars>
+#             </envvars>
 #         </restic>
 #     </services>
 # </config>
@@ -53,6 +55,11 @@ fi
 # Configure the repos config
 if ! omv_config_exists "${SERVICE_XPATH}/repos"; then
     omv_config_add_node "${SERVICE_XPATH}" "repos" ""
+fi
+
+# Configure the environment variables config
+if ! omv_config_exists "${SERVICE_XPATH}/envvars"; then
+    omv_config_add_node "${SERVICE_XPATH}" "envvars" ""
 fi
 
 exit 0

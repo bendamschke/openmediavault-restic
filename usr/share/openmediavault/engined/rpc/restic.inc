@@ -20,6 +20,7 @@
 class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 {
     private $getProgram = '/usr/bin/restic';
+    private $envFile = '/etc/restic/restic-envvar-';
 
     public function getName()
     {
@@ -38,9 +39,16 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         // Restic repositories
         $this->registerMethod("getRepoList");
+        $this->registerMethod("enumerateRepoCandidates");
         $this->registerMethod("getRepo");
         $this->registerMethod("setRepo");
         $this->registerMethod("deleteRepo");
+
+        // Restic environment variables
+        $this->registerMethod('getEnvVarList');
+        $this->registerMethod('getEnvVar');
+        $this->registerMethod('setEnvVar');
+        $this->registerMethod('deleteEnvVar');
     }
 
     public function getSettings($params, $context)
@@ -163,6 +171,24 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         );
     }
 
+    public function enumerateRepoCandidates($params, $context)
+    {
+        // Validate the RPC caller context.
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Get the saved repositories.
+        $db = \OMV\Config\Database::getInstance();
+        $repos = $db->getAssoc('conf.service.restic.repo');
+
+        // If we are creating an environment variable, we need to allow the user to add
+        // an environment variable for all repositories
+        if ($params['shared'] == true) {
+            $repos[] = [
+                'name' => 'All Repositories',
+                'uuid' => 'shared'
+            ];
+        }
+        return $repos;
+    }
 
     public function getRepo($params, $context)
     {
@@ -217,6 +243,10 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Attempt to initialise the repository
         $cmd = new \OMV\System\Process($cmdArgs);
         $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($params['passphrase']));
+        if (!$isNew) {
+            $cmd->setEnvFromFile($this->envFile . $params['uuid']);
+        }
+        $cmd->setEnvFromFile($this->envFile . 'shared');
         $cmd->setRedirect2to1();
         $cmdLine = $cmd->getCommandLine();
         $cmd->execute($output, $exitStatus);
@@ -286,5 +316,86 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $db->delete($repo);
         // Return the deleted configuration object.
         return $repo->getAssoc();
+    }
+
+    public function getEnvVarList($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.getlist');
+        
+        // Get the configuration object.
+        $db = \OMV\Config\Database::getInstance();
+        $envvars = $db->get('conf.service.restic.envvar');
+        // Add additional environment variable informations.
+        $objectsAssoc = [];
+        foreach ($envvars as $envvark => &$envvarv) {
+            // Add the new property 'sharedfoldername'.
+            $envvarv->add('reponame', 'string', gettext("n/a"));
+            // Get the shared folder configuration object.
+            if ($envvarv->get('reporef') == 'shared') {
+                $envvarv->set('reponame', 'All Repositories');
+            } else {
+                try {
+                    $repoObject = $db->get('conf.service.restic.repo', $envvarv->get('reporef'));
+                    // Update the 'reponame' property.
+                    $envvarv->set('reponame', $repoObject->get('name'));
+                } catch (Exception $e) {
+                }
+            }
+            $objectsAssoc[] = $envvarv->getAssoc();
+        }
+        // Filter the result.
+        return $this->applyFilter($objectsAssoc, $params['start'], $params['limit'],
+            $params['sortfield'], $params['sortdir']);
+    }
+
+    public function getEnvVar($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.objectuuid');
+        // Get the configuration object.
+        $db = \OMV\Config\Database::getInstance();
+        return $db->getAssoc('conf.service.restic.envvar', $params['uuid']);
+    }
+
+    public function setEnvVar($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.restic.setenvvar');
+        // Prepare the configuration object.
+        $envvar = new \OMV\Config\ConfigObject('conf.service.restic.envvar');
+        // Remove spaces from name
+        $params['envname'] = str_replace(' ', '_', $params['envname']);
+        // Set the configuration object.
+        $envvar->setAssoc($params);
+        $db = \OMV\Config\Database::getInstance();
+        $db->set($envvar);
+        // Return the configuration object.
+        return $envvar->getAssoc();
+    }
+
+    public function deleteEnvVar($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.objectuuid');
+        // Get the configuration object.
+        $db = \OMV\Config\Database::getInstance();
+        $envvar = $db->get('conf.service.restic.envvar', $params['uuid']);
+        // Delete the configuration object.
+        $db->delete($envvar);
+        // Return the deleted configuration object.
+        return $envvar->getAssoc();
     }
 }

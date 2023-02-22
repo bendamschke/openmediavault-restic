@@ -22,6 +22,7 @@
 {% set scriptsDir = '/var/lib/openmediavault/restic' %}
 {% set scriptPrefix = 'restic-' %}
 
+# Ensure that we have /etc/restic available and with the right permissions
 configure_restic_envvar_dir:
   file.directory:
     - name: "{{ envVarDir }}"
@@ -29,6 +30,7 @@ configure_restic_envvar_dir:
     - group: root
     - mode: 700
 
+# Remove pre-existing environment variable files
 remove_envvar_files:
   module.run:
     - file.find:
@@ -36,6 +38,9 @@ remove_envvar_files:
         - iname: "{{ envVarPrefix }}*"
         - delete: "f"
 
+# Create an environment variable file for each repository.
+# This will show up in the filesystem as e.g.:
+# /etc/restic/restic-envvar-b5bad571-e5d4-4f98-84ec-3a35c2bf97ba
 {% for repo in config.repos.repo %}
 {% set envVarFile = envVarDir ~ '/' ~ envVarPrefix ~ repo.uuid %}
 
@@ -53,15 +58,18 @@ configure_restic_envvar_{{ repo.uuid }}:
     - mode: 600
 {% endfor %}
 
-{% set envVarFile = envVarDir ~ '/' ~ envVarPrefix ~ 'creation' %}
-configure_restic_envvar_creation:
+# Create an environment variable file which will be used for all repositories.
+# This will show up in the filesystem as e.g.:
+# /etc/restic/restic-envvar-shared
+{% set envVarFile = envVarDir ~ '/' ~ envVarPrefix ~ 'shared' %}
+configure_restic_envvar_shared:
   file.managed:
     - name: "{{ envVarFile }}"
     - source:
       - salt://{{ tpldir }}/files/etc-restic_envvar.j2
     - context:
         config: {{ config | json }}
-        repouuid: "creation"
+        repouuid: "shared"
     - template: jinja
     - user: root
     - group: root
