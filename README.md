@@ -31,6 +31,17 @@ The following will install this plugin for development purposes:
 
 It will now be possible to access "Restic" under the "Services" tab.
 
+### Documentation:
+
+* [Development docs](https://docs.openmediavault.org/en/latest/development/index.html)
+* [Workbench models](https://github.com/openmediavault/openmediavault/tree/master/deb/openmediavault/workbench/src/app/core/components/intuition/models)
+* [diypluginguide3.x](https://github.com/skyajal/diypluginguide3.x) - Note: This is for OpenMediaVault 3, and does not cover SaltStack for deployments. 
+
 ### Debugging
 
-It is possible to view potential issues with the plugin via e.g. `sudo systemctl status openmediavault-engined.service` or `sudo /usr/sbin/omv-engined -f`
+It is possible to view potential issues with the plugin via:
+
+* `sudo systemctl status openmediavault-engined.service`
+* `sudo /usr/sbin/omv-engined -f` OR `sudo /usr/sbin/omv-engined -d -f`
+* `sudo /usr/sbin/omv-confdbadm read conf.service.restic`
+    * If you get an error saying e.g. `openmediavault.exceptions.AssertException: The property 'repos.repo.0.passphrase' does not exist in the model 'conf.service.restic'.`, it is because there is an old entry in config.xml which once had the "passphrase" (or any other property). You need to remove it via `sudo nano /etc/openmediavault/config.xml`.
