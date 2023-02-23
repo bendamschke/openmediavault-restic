@@ -3,5 +3,5 @@ type: navigation-item
 data:
   path: "services.restic"
   text: _("Restic")
-  icon: "mdi:view-stream-outline"
+  icon: "mdi:content-duplicate"
   url: "/services/restic"
