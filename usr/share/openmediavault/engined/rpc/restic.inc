@@ -213,6 +213,7 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         // Get the repository via its UUID as per the validation method params RPC datamodel
         $repo = new \OMV\Config\ConfigObject('conf.service.restic.repo');
+        $db = \OMV\Config\Database::getInstance();
 
         // Remove spaces from name
         $params['name'] = str_replace(' ', '_', $params['name']);
@@ -220,8 +221,6 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         // Check if this is a new repository
         $isNew = $repo->isNew();
-        $db = \OMV\Config\Database::getInstance();
-
         if (TRUE === $isNew) {
             // Ensure that the name and shared folder references are unique
             // TODO: This might be where we get a non-user-friendly exception raised in the UI
@@ -229,34 +228,37 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
             $db->assertIsUnique($repo, 'sharedfolderref');
         }
 
-        // Initalise the repository, unless we opted to skip initalisation
-        // if ($params['skipinit'] == true) { }
-        $path = \OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
+        $path = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
             'uuid' => $params['sharedfolderref']
-        ], $context);
-
+        ], $context));
         $cmdArgs = [];
         $cmdArgs[] = $this->getProgram;
-        $cmdArgs[] = 'init --repo';
-        $cmdArgs[] = escapeshellarg($path);
 
-        // Attempt to initialise the repository
-        $cmd = new \OMV\System\Process($cmdArgs);
-        $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($params['passphrase']));
-        if (!$isNew) {
-            $cmd->setEnvFromFile($this->envFile . $params['uuid']);
-        }
-        $cmd->setEnvFromFile($this->envFile . 'shared');
-        $cmd->setRedirect2to1();
-        $cmdLine = $cmd->getCommandLine();
-        $cmd->execute($output, $exitStatus);
+        // Initalise the repository, unless we opted to skip initalisation        
+        if ($params['skipinit'] == false) {
+            $cmdArgs[] = 'init --repo';
+            $cmdArgs[] = $path;
 
-        // If we cannot, we should raise an exception
-        if (0 !== $exitStatus) {
-            throw new \OMV\ExecException($cmdLine, $output);
-        }
+            // Attempt to initialise the repository
+            $cmd = new \OMV\System\Process($cmdArgs);
+            $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($params['passphrase']));
+            if (!$isNew) {
+                $cmd->setEnvFromFile($this->envFile . $params['uuid']);
+            }
+            $cmd->setEnvFromFile($this->envFile . 'shared');
+            $cmd->setRedirect2to1();
+            $cmdLine = $cmd->getCommandLine();
+            $cmd->execute($output, $exitStatus);
 
-        // Remove skipinit and passphrase parameters
+            // If we cannot, we should raise an exception
+            if (0 !== $exitStatus) {
+                throw new \OMV\ExecException($cmdLine, $output);
+            }
+        } else {
+            // TODO: We will need to add all of the pre-existing Restic snapshots here...
+        };
+
+        // Remove the skipinit parameter
         $repo->remove('skipinit');
         // Set the configuration object.
         $db->set($repo);
