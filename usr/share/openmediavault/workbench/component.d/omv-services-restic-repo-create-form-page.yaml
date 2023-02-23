@@ -30,17 +30,20 @@ data:
       - type: sharedFolderSelect
         name: sharedfolderref
         label: _("Shared Folder")
-        hint: _("Ensure that the shared folder is not referenced by anything")
+        hint: _("Ensure that the shared folder is not referenced by anything.")
         value: ""
       - type: passwordInput
         name: passphrase
         label: _("Passphrase")
-        value: ""
+        hint: _("Ensure that the password is strong and stored securely.")
+        validators:
+          required: true
       - type: checkbox
         name: skipinit
         label: _("Skip initialisation")
         value: false
-        hint: _("Skip initialisation to import an existing repository")
+        hint:
+          _("Skip initialisation to import an existing repository. Please ensure that the password is correct for the existing repository.")
     buttons:
       - template: submit
         execute:
