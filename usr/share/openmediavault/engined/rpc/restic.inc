@@ -302,14 +302,14 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         $cmdArgs = [];
         $cmdArgs[] = "rm -rf";
-        foreach ($resticRepoFileOrFolder as $fileOrFolder){
+        foreach ($resticRepoFileOrFolder as $fileOrFolder) {
             $cmdArgs[] = escapeshellarg($path . "/" . $fileOrFolder);
         };
-        
-        $cmd = new \OMV\System\Process($cmdArgs);        
+
+        $cmd = new \OMV\System\Process($cmdArgs);
         $cmd->setQuiet(TRUE);
         $cmd->execute($output);
-        
+
         // Delete the configuration object.
         $db->delete($repo);
         // Return the deleted configuration object.
@@ -323,7 +323,7 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
         // Validate the parameters of the RPC service method.
         $this->validateMethodParams($params, 'rpc.common.getlist');
-        
+
         // Get the configuration object.
         $db = \OMV\Config\Database::getInstance();
         $envvars = $db->get('conf.service.restic.envvar');
@@ -346,8 +346,10 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
             $objectsAssoc[] = $envvarv->getAssoc();
         }
         // Filter the result.
-        return $this->applyFilter($objectsAssoc, $params['start'], $params['limit'],
-            $params['sortfield'], $params['sortdir']);
+        return $this->applyFilter(
+            $objectsAssoc, $params['start'], $params['limit'],
+            $params['sortfield'], $params['sortdir']
+        );
     }
 
     public function getEnvVar($params, $context)
