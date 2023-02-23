@@ -258,8 +258,6 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
         // Remove skipinit and passphrase parameters
         $repo->remove('skipinit');
-        // TODO: We may need to store this actually, as we could have multiple repos
-        $repo->remove('passphrase');
         // Set the configuration object.
         $db->set($repo);
         // Return the configuration object.
