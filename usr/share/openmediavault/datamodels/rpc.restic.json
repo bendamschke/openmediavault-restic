@@ -30,10 +30,10 @@
                 "type": {
                     "type": "string",
                     "enum": [
-                      "local"
+                        "local"
                     ],
                     "required": true
-                  },
+                },
                 "sharedfolderref": {
                     "type": "string",
                     "oneOf": [
@@ -54,6 +54,60 @@
                 },
                 "skipinit": {
                     "type": "boolean",
+                    "required": true
+                }
+            }
+        }
+    },
+    {
+        "type": "rpc",
+        "id": "rpc.restic.setsnapshot",
+        "params": {
+            "type": "object",
+            "properties": {
+                "uuid": {
+                    "type": "string",
+                    "format": "uuidv4",
+                    "required": true
+                },
+                "hash": {
+                    "type": "string",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "maxLength": 0
+                        }
+                    ],
+                    "required": true
+                },
+                "tag": {
+                    "type": "string",
+                    "required": true
+                },
+                "sourcefolderref": {
+                    "type": "string",
+                    "format": "uuidv4",
+                    "required": true
+                },
+                "reporef": {
+                    "type": "string",
+                    "format": "uuidv4",
+                    "required": true
+                },
+                "exclude": {
+                    "type": "string",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "maxLength": 0
+                        }
+                    ],
                     "required": true
                 }
             }

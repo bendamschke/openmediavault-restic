@@ -37,6 +37,8 @@ SERVICE_XPATH="/config/services/${SERVICE_XPATH_NAME}"
 #             </settings>
 #             <repos>
 #             </repos>
+#             <snapshots>
+#             </snapshots>
 #             <envvars>
 #             </envvars>
 #         </restic>
@@ -55,6 +57,11 @@ fi
 # Configure the repos config
 if ! omv_config_exists "${SERVICE_XPATH}/repos"; then
     omv_config_add_node "${SERVICE_XPATH}" "repos" ""
+fi
+
+# Configure the snapsots config
+if ! omv_config_exists "${SERVICE_XPATH}/snapshots"; then
+    omv_config_add_node "${SERVICE_XPATH}" "snapshots" ""
 fi
 
 # Configure the environment variables config

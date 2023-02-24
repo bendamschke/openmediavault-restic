@@ -33,9 +33,7 @@
               },
               "type": {
                 "type": "string",
-                "enum": [
-                  "local"
-                ],
+                "enum": ["local"],
                 "default": "local"
               },
               "sharedfolderref": {
@@ -54,7 +52,41 @@
               },
               "passphrase": {
                 "type": "string"
+              }
             }
+          }
+        }
+      }
+    },
+    "snapshots": {
+      "type": "object",
+      "properties": {
+        "snapshot": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "uuid": {
+                "type": "string",
+                "format": "uuidv4"
+              },
+              "hash": {
+                "type": "string"
+              },
+              "tag": {
+                "type": "string"
+              },
+              "sourcefolderref": {
+                "type": "string",
+                "format": "uuidv4"
+              },
+              "reporef": {
+                "type": "string",
+                "format": "uuidv4"
+              },
+              "exclude": {
+                "type": "string"
+              }
             }
           }
         }
@@ -87,9 +119,7 @@
                   },
                   {
                     "type": "string",
-                    "enum": [
-                      "shared"
-                    ]
+                    "enum": ["shared"]
                   },
                   {
                     "type": "string",

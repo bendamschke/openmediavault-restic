@@ -44,6 +44,13 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $this->registerMethod("setRepo");
         $this->registerMethod("deleteRepo");
 
+        // Restic snapshots
+        $this->registerMethod("getSnapshotList");
+        $this->registerMethod("createSnapshot");
+        $this->registerMethod("getSnapshot");
+        $this->registerMethod("setSnapshot");
+        $this->registerMethod("deleteSnapshot");
+
         // Restic environment variables
         $this->registerMethod('getEnvVarList');
         $this->registerMethod('getEnvVar');
@@ -138,7 +145,7 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Get the configuration objects from the database "config.xml" 
         $db = \OMV\Config\Database::getInstance();
         $repos = $db->get('conf.service.restic.repo');
-        // $snapshots = $db->get('conf.service.restic.snapshot');
+        $snapshots = $db->get('conf.service.restic.snapshot');
 
         // Add additional share information
         $objectsAssoc = [];
@@ -155,11 +162,11 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
 
             // Get how many snapshots have been created for this repository
             $snapshotCount = 0;
-            // foreach ($snapshots as $snapshotk => $snapshotv) {
-            //     if ($snapshotv->get('reporef') == $repov->get('uuid')) {
-            //         $snapshotCount++;
-            //     }
-            // }
+            foreach ($snapshots as $snapshotk => $snapshotv) {
+                if ($snapshotv->get('reporef') == $repov->get('uuid')) {
+                    $snapshotCount++;
+                }
+            }
             $repov->add('snapshotCount', 'integer', $snapshotCount);
 
             $objectsAssoc[] = $repov->getAssoc();
@@ -278,21 +285,20 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $db = \OMV\Config\Database::getInstance();
 
         // Ensure that this repository does not have any snapshots, before deleting it
-        // TODO: In UI, when clicking the delete button, have a pop-up with a checkbox to delete all snapshots
-        // $snapshots = $db->get('conf.service.restic.snapshot');
-        // $found = false;
-        // foreach ($snapshots as $snapshot) {
-        //     $reporef = $snapshot->get('reporef');
-        //     if ($reporef == $params['uuid']) {
-        //         $found = true;
-        //         break;
-        //     }
-        // }
-        // if ($found) {
-        //     throw new \OMV\ExecException(gettext(
-        //       "Repository is in use. Please delete the snapshots associated with this repository first."
-        //     ));
-        // }
+        $snapshots = $db->get('conf.service.restic.snapshot');
+        $found = false;
+        foreach ($snapshots as $snapshot) {
+            $reporef = $snapshot->get('reporef');
+            if ($reporef == $params['uuid']) {
+                $found = true;
+                break;
+            }
+        }
+        if ($found) {
+            throw new \OMV\ExecException(gettext(
+              "Repository is in use. Please delete the snapshots associated with this repository first."
+            ));
+        }
 
         $repo = $db->get('conf.service.restic.repo', $params['uuid']);
 
@@ -316,6 +322,167 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $db->delete($repo);
         // Return the deleted configuration object.
         return $repo->getAssoc();
+    }
+
+    public function getSnapshotList($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.getlist');
+
+        // Get configuration data.
+        $db = \OMV\Config\Database::getInstance();
+        $snapshots = $db->get('conf.service.restic.snapshot');
+
+        // Add additional repository information to the list.
+        $snapshotsAssoc = [];
+        foreach ($snapshots as $snapshotk => &$snapshotv) {
+            $repo = $db->get('conf.service.restic.repo', $snapshotv->get('reporef'));
+            $sourcefolder = $db->get('conf.system.sharedfolder', $snapshotv->get('sourcefolderref'));
+
+            // Add the new property 'reponame' and `sourcename` for display-only
+            // purposes in the data table.
+            $snapshotv->add('reponame', 'string', $repo->get('name'));
+            $snapshotv->add('sourcename', 'string', $sourcefolder->get('name'));
+            $snapshotsAssoc[] = $snapshotv->getAssoc();
+        }
+        // Filter the result.
+        return $this->applyFilter(
+            $snapshotsAssoc, $params['start'], $params['limit'],
+            $params['sortfield'], $params['sortdir']
+        );
+    }
+
+    public function getSnapshot($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.objectuuid');
+
+        // Get the configuration object.
+        $db = \OMV\Config\Database::getInstance();
+        return $db->getAssoc('conf.service.restic.snapshot', $params['uuid']);
+    }
+
+    public function setSnapshot($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.restic.setsnapshot');
+
+        // Get the snapsot and repo objects.
+        $db = \OMV\Config\Database::getInstance();
+        $snapshot = new \OMV\Config\ConfigObject('conf.service.restic.snapshot');
+
+        // Remove spaces from tag
+        $params['tag'] = str_replace(' ', '_', $params['tag']);
+        $snapshot->setAssoc($params);
+        // Update the snapshot object
+        $db->set($snapshot);
+
+        return $snapshot;
+    }
+
+    public function createSnapshot($params, $context)
+    {
+        // Validate the RPC caller context.
+        // i.e. you must be an logged on as an administrator to perform this function
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.restic.setsnapshot');
+
+        // Get the snapsot and repo objects.
+        $db = \OMV\Config\Database::getInstance();
+        $repo = $db->get('conf.service.restic.repo', $params['reporef']);
+
+        // Create the snapshot background process
+        return $this->execBgProc(
+            function ($bgStatusFilename, $bgOutputFilename) use ($params, $context, $repo) {
+                // Remove spaces from tag
+                $params['tag'] = str_replace(' ', '_', $params['tag']);
+                
+                $repopath = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
+                    'uuid' => $repo->get('sharedfolderref')
+                ], $context));
+                $sourcepath = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
+                    'uuid' => $params['sourcefolderref']
+                ], $context));
+
+                // Prepare the Restic backup command
+                $cmdArgs = [];
+                $cmdArgs[] = $this->getProgram;
+                $cmdArgs[] = 'backup';
+                $cmdArgs[] = '--verbose';
+                $cmdArgs[] = "--tag " . $params['tag'];
+                $excludes = explode(',', $params['exclude']);
+                foreach ($excludes as $dirs) {
+                    $cmdArgs[] = sprintf('--exclude %s', escapeshellarg($dirs));
+                }
+                $cmdArgs[] = "-r " . $repopath;
+                $cmdArgs[] = $sourcepath;
+
+                $cmd = new \OMV\System\Process($cmdArgs);
+                $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($repo->get('passphrase')));
+                $cmd->setEnvFromFile($this->envFile . $repo->get('uuid'));
+                $cmd->setEnvFromFile($this->envFile . "shared");
+                $cmd->setRedirect2to1();
+                $cmdLine = $cmd->getCommandLine();
+                
+                // Perform the background task
+                $this->writeBgProcOutput($bgOutputFilename, sprintf('Command: %s', $cmdLine));
+                $this->writeBgProcOutput($bgOutputFilename, PHP_EOL . PHP_EOL);
+                $this->exec($cmdLine, $output, $bgOutputFilename);
+                
+                // Extract the snapshot hash from the command output and update the snapshot object
+                // Example output, last line: snapshot 1f66397c saved
+                preg_match('/snapshot (\w+) saved/', file_get_contents($bgOutputFilename), $matches);
+                $hash = isset($matches[1]) ? $matches[1] : '';
+                $params["hash"] = $hash;
+                $this->callMethod("setSnapshot", $params, $context);
+
+                return $output;
+            }
+        );
+    }
+
+    public function deleteSnapshot($params, $context)
+    {
+        // Validate the RPC caller context.
+        $this->validateMethodContext($context, ['role' => OMV_ROLE_ADMINISTRATOR]);
+        // Validate the parameters of the RPC service method.
+        $this->validateMethodParams($params, 'rpc.common.objectuuid');
+        $db = \OMV\Config\Database::getInstance();
+        // Get snapshot configuration object
+        $snapshot = $db->get('conf.service.restic.snapshot', $params['uuid']);
+        // Get repo configuration object
+        $repo = $db->get('conf.service.restic.repo', $snapshot->get('reporef'));
+        $path = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
+            'uuid' => $repo->get('sharedfolderref')
+        ], $context));
+        // Forget the snapshot. Note: We then need to prune the repository to delete the files
+        $cmdArgs = [];
+        $cmdArgs[] = $this->getProgram;
+        $cmdArgs[] = "-r " . $path;
+        $cmdArgs[] = 'forget';
+        $cmdArgs[] = $snapshot->get('hash');
+       
+        $cmd = new \OMV\System\Process($cmdArgs);
+        $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($repo->get('passphrase')));
+        $cmd->setEnvFromFile($this->envFile . $snapshot->get('reporef'));
+        $cmd->setEnvFromFile($this->envFile . "shared");
+        $cmd->setQuiet(TRUE);
+        $cmd->execute($output);
+
+        // Delete the configuration object.
+        $db->delete($snapshot);
+        // Return the deleted configuration object.
+        return $snapshot->getAssoc();
     }
 
     public function getEnvVarList($params, $context)
