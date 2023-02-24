@@ -20,12 +20,12 @@ data:
         name: hash
         value: ""
       - type: textInput
-        name: tag
-        label: _("Tag")
+        name: tags
+        label: _("Tags")
+        hint: _("Name of each snapshot tag. Put a comma between each entry.")
+        value: ""
         validators:
-          required: true
-          patternType: "shareName"
-        hint: _("Name of the snapshot tag.")
+          required: false
       - type: sharedFolderSelect
         name: sourcefolderref
         label: _("Source Folder")
@@ -49,7 +49,7 @@ data:
       - type: textInput
         name: exclude
         label: _("Excludes")
-        hint: _("Put a comma between each entry.")
+        hint: _("What files or folders to exclude. Put a comma between each entry.")
         value: ""
         validators:
           required: false

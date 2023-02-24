@@ -15,7 +15,7 @@
     "hash": {
       "type": "string"
     },
-    "tag": {
+    "tags": {
       "type": "string"
     },
     "sourcefolderref": {

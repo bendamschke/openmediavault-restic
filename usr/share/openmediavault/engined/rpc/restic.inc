@@ -380,8 +380,6 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         $db = \OMV\Config\Database::getInstance();
         $snapshot = new \OMV\Config\ConfigObject('conf.service.restic.snapshot');
 
-        // Remove spaces from tag
-        $params['tag'] = str_replace(' ', '_', $params['tag']);
         $snapshot->setAssoc($params);
         // Update the snapshot object
         $db->set($snapshot);
@@ -404,9 +402,6 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Create the snapshot background process
         return $this->execBgProc(
             function ($bgStatusFilename, $bgOutputFilename) use ($params, $context, $repo) {
-                // Remove spaces from tag
-                $params['tag'] = str_replace(' ', '_', $params['tag']);
-                
                 $repopath = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
                     'uuid' => $repo->get('sharedfolderref')
                 ], $context));
@@ -419,7 +414,10 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
                 $cmdArgs[] = $this->getProgram;
                 $cmdArgs[] = 'backup';
                 $cmdArgs[] = '--verbose';
-                $cmdArgs[] = "--tag " . $params['tag'];
+                $tags = explode(',', $params['tags']);
+                foreach ($tags as $tag) {
+                    $cmdArgs[] = sprintf('--tag %s', escapeshellarg($tag));
+                }
                 $excludes = explode(',', $params['exclude']);
                 foreach ($excludes as $dirs) {
                     $cmdArgs[] = sprintf('--exclude %s', escapeshellarg($dirs));

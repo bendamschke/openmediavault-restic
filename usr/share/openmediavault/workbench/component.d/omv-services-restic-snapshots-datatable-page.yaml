@@ -20,16 +20,16 @@ data:
         prop: hash
         flexGrow: 1
         sortable: true
-      - name: _("Tag")
-        prop: tag
-        flexGrow: 1
-        sortable: true
       - name: _("Source")
         prop: sourcename
         flexGrow: 1
         sortable: true
       - name: _("Repository")
         prop: reponame
+        flexGrow: 1
+        sortable: true
+      - name: _("Tags")
+        prop: tags
         flexGrow: 1
         sortable: true
       - name: _("Excludes")

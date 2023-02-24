@@ -83,8 +83,17 @@
                     ],
                     "required": true
                 },
-                "tag": {
+                "tags": {
                     "type": "string",
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "maxLength": 0
+                        }
+                    ],
                     "required": true
                 },
                 "sourcefolderref": {
