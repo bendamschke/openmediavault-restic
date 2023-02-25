@@ -26,11 +26,19 @@ data:
         value: ""
         validators:
           required: false
-      - type: sharedFolderSelect
-        name: sourcefolderref
-        label: _("Source Folder")
-        hint: _("Ensure that the source folder is not a repository.")
-        value: ""
+      - type: select
+        name: sharedfolderrefs
+        label: _("Shared Folders")
+        placeholder: _("Select a shared folder.")
+        hint: _("Select all shared folders to back up.")
+        multiple: true
+        valueField: uuid
+        textField: description
+        store:
+          proxy:
+            service: ShareMgmt
+            get:
+              method: enumerateSharedFolders
         validators:
           required: true
       - type: select

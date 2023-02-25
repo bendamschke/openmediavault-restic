@@ -2,11 +2,11 @@
 
 Restic plugin for OpenMediaVault
 
-![openmediavault-restic-1](https://user-images.githubusercontent.com/31949120/221165050-429d17cf-5e45-458f-bf28-ebee3d182339.png)
-![openmediavault-restic-2](https://user-images.githubusercontent.com/31949120/221165048-97366117-2dff-4a02-97e3-2facecd730d3.png)
-![openmediavault-restic-3](https://user-images.githubusercontent.com/31949120/221165045-0de53253-5bea-44ae-bba0-ed35a883aec0.png)
-![openmediavault-restic-4](https://user-images.githubusercontent.com/31949120/221165041-94f9500b-896a-47b2-9eff-3b896184b322.png)
-![openmediavault-restic-5](https://user-images.githubusercontent.com/31949120/221165029-936fe267-9137-4f83-8a95-02612ca01cf4.png)
+![Screenshot_20230225_193445](https://user-images.githubusercontent.com/31949120/221347571-56dba5cb-eb32-4a0f-a73a-cbe31bcfd787.png)
+![Screenshot_20230225_193500](https://user-images.githubusercontent.com/31949120/221347573-9c041b85-2768-47d1-9c3c-18d6250c067a.png)
+![Screenshot_20230225_193508](https://user-images.githubusercontent.com/31949120/221347574-bb8dd40c-bd64-4624-96f1-3040c8b9b38f.png)
+![Screenshot_20230225_193517](https://user-images.githubusercontent.com/31949120/221347575-7d54adef-3589-4414-a4b5-f25cbe151c1a.png)
+![Screenshot_20230225_193526](https://user-images.githubusercontent.com/31949120/221347576-e1038c70-31da-4ebd-b6ca-22fc975118d0.png)
 
 ## Development process
 

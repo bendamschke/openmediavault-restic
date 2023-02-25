@@ -20,7 +20,7 @@ data:
         prop: hash
         flexGrow: 1
         sortable: true
-      - name: _("Source")
+      - name: _("Shared Folders")
         prop: sourcename
         flexGrow: 1
         sortable: true

@@ -339,13 +339,19 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Add additional repository information to the list.
         $snapshotsAssoc = [];
         foreach ($snapshots as $snapshotk => &$snapshotv) {
-            $repo = $db->get('conf.service.restic.repo', $snapshotv->get('reporef'));
-            $sourcefolder = $db->get('conf.system.sharedfolder', $snapshotv->get('sourcefolderref'));
-
             // Add the new property 'reponame' and `sourcename` for display-only
             // purposes in the data table.
+            $repo = $db->get('conf.service.restic.repo', $snapshotv->get('reporef'));
+            $sharedfoldernames = '';
+            $uuids = explode(', ', $snapshotv->get('csvsharedfolderrefs'));
+
+            foreach ($uuids as $i => $uuid) {
+                $sharedfolder = $db->get('conf.system.sharedfolder', $uuid);
+                $sharedfoldernames .= ($i > 0 ? ', ' : '') . $sharedfolder->get('name');
+            }
+
             $snapshotv->add('reponame', 'string', $repo->get('name'));
-            $snapshotv->add('sourcename', 'string', $sourcefolder->get('name'));
+            $snapshotv->add('sourcename', 'string', $sharedfoldernames);
             $snapshotsAssoc[] = $snapshotv->getAssoc();
         }
         // Filter the result.
@@ -376,6 +382,15 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
         // Validate the parameters of the RPC service method.
         $this->validateMethodParams($params, 'rpc.restic.setsnapshot');
 
+        // We cannot store the list of UUIDv4s, so we will create a CSV and remove
+        // sharedfolderrefs from the params
+        $sharedfolderefs = '';
+        foreach ($params['sharedfolderrefs'] as $i => $uuid) {
+            $sharedfolderefs .= ($i > 0 ? ', ' : '') . $uuid;
+        }
+        unset($params['sharedfolderrefs']);
+        $params['csvsharedfolderrefs'] = $sharedfolderefs;
+
         // Get the snapsot and repo objects.
         $db = \OMV\Config\Database::getInstance();
         $snapshot = new \OMV\Config\ConfigObject('conf.service.restic.snapshot');
@@ -405,9 +420,16 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
                 $repopath = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
                     'uuid' => $repo->get('sharedfolderref')
                 ], $context));
-                $sourcepath = escapeshellarg(\OMV\Rpc\Rpc::call('ShareMgmt', 'getPath', [
-                    'uuid' => $params['sourcefolderref']
-                ], $context));
+
+                // sharedfolderrefs is a temporary field and only to be used in this create method
+                // csvsharedfolderrefs is where each of these UUIDv4s will be stored, in CSV format
+                $sharedfolderpaths = [];
+                foreach ($params['sharedfolderrefs'] as $uuid) {
+                    $sfpath = escapeshellarg(\OMV\Rpc\Rpc::call("ShareMgmt", "getPath", [
+                        "uuid" => $uuid
+                    ], $context));
+                    $sharedfolderpaths[] = $sfpath;
+                }
 
                 // Prepare the Restic backup command
                 $cmdArgs = [];
@@ -423,7 +445,9 @@ class OMVRpcServiceRestic extends \OMV\Rpc\ServiceAbstract
                     $cmdArgs[] = sprintf('--exclude %s', escapeshellarg($dirs));
                 }
                 $cmdArgs[] = "-r " . $repopath;
-                $cmdArgs[] = $sourcepath;
+                foreach ($sharedfolderpaths as $path) {
+                    $cmdArgs[] = $path;
+                }
 
                 $cmd = new \OMV\System\Process($cmdArgs);
                 $cmd->setEnv("RESTIC_PASSWORD", escapeshellarg($repo->get('passphrase')));

@@ -18,10 +18,9 @@
     "tags": {
       "type": "string"
     },
-    "sourcefolderref": {
-        "type": "string",
-        "format": "uuidv4"
-      },
+    "csvsharedfolderrefs": {
+      "type": "string"
+    },
     "reporef": {
       "type": "string",
       "format": "uuidv4"
